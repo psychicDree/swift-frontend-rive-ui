@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build iOS App (Simulator Only)
 
 on:
   push:
@@ -6,39 +6,45 @@ on:
       - main
 
 jobs:
-  build:
+  build-ios:
+    name: Build for iOS Simulator (No Code Signing)
     runs-on: macos-latest
+
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
+      - name: 🛠️ Select Xcode Version
         run: sudo xcode-select -switch /Applications/Xcode.app
 
-      - name: Install dependencies
+      - name: 📦 Install CocoaPods (if needed)
+        if: exists('Podfile')
         run: |
-          if [ -f "Podfile" ]; then
-            sudo gem install cocoapods
-            pod install
-          fi
+          sudo gem install cocoapods
+          pod install
 
-      - name: Build for iOS Simulator
+      - name: 🧱 Build App for iOS Simulator
         run: |
+          DERIVED_DATA=build_data
           xcodebuild \
-            -workspace YourApp.xcworkspace \ # or replace with `.xcodeproj` if no workspace
-            -scheme YourApp \
+            -project YourApp.xcodeproj \  # 🔁 Replace if using .xcworkspace
+            -scheme YourApp \             # 🔁 Replace with your scheme name
             -sdk iphonesimulator \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 14' \
-            clean build \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            -derivedDataPath $DERIVED_DATA \
+            clean build
 
-      - name: Export .app
+      - name: 📤 Export .app to Output Directory
         run: |
           mkdir -p output
-          cp -R ~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app output/
+          APP_PATH=$(find build_data/Build/Products/Debug-iphonesimulator -name "*.app" -type d | head -n 1)
+          cp -R "$APP_PATH" output/
 
-      - name: Upload build artifact
+      - name: 📦 Upload .app Artifact
         uses: actions/upload-artifact@v4
         with:
           name: iOS-Simulator-Build

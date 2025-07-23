@@ -21,8 +21,8 @@ jobs:
         run: |
           DERIVED_DATA=build_data
           xcodebuild \
-            -project PortfolioApp.xcodeproj \
-            -scheme PortfolioApp \
+            -project swift-frontend.xcodeproj \
+            -scheme swift-frontend \
             -sdk iphonesimulator \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 14' \
@@ -35,8 +35,8 @@ jobs:
       - name: 📤 Export .app to Output Directory
         run: |
           mkdir -p output
-          APP_PATH=$(find build_data/Build/Products/Debug-iphonesimulator -name "*.app" -type d | head -n 1)
-          cp -R "$APP_PATH" output/
+          APP=$(find build_data/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "*.app" | head -n 1)
+          cp -R "$APP" output/
 
       - name: 📦 Upload .app Artifact
         uses: actions/upload-artifact@v4

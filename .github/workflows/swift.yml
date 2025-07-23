@@ -17,18 +17,21 @@ jobs:
       - name: 🛠️ Select Xcode Version
         run: sudo xcode-select -switch /Applications/Xcode.app
 
-      - name: 📦 Install CocoaPods (if needed)
-        if: exists('Podfile')
+      - name: 📦 Install CocoaPods (if Podfile exists)
         run: |
-          sudo gem install cocoapods
-          pod install
+          if [ -f "Podfile" ]; then
+            sudo gem install cocoapods
+            pod install
+          else
+            echo "No Podfile found, skipping pod install."
+          fi
 
       - name: 🧱 Build App for iOS Simulator
         run: |
           DERIVED_DATA=build_data
           xcodebuild \
-            -project YourApp.xcodeproj \  # 🔁 Replace if using .xcworkspace
-            -scheme YourApp \             # 🔁 Replace with your scheme name
+            -project YourApp.xcodeproj \  # Replace if using .xcworkspace
+            -scheme YourApp \             # Replace with your scheme name
             -sdk iphonesimulator \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 14' \
